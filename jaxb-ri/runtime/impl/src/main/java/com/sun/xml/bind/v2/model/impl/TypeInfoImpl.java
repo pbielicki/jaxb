@@ -45,7 +45,6 @@ import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
-import com.sun.xml.bind.api.impl.NameConverter;
 import com.sun.xml.bind.v2.model.annotation.AnnotationReader;
 import com.sun.xml.bind.v2.model.annotation.Locatable;
 import com.sun.xml.bind.v2.model.core.TypeInfo;
@@ -59,6 +58,16 @@ import com.sun.xml.bind.v2.model.nav.Navigator;
  */
 abstract class TypeInfoImpl<TypeT,ClassDeclT,FieldT,MethodT>
         implements TypeInfo<TypeT,ClassDeclT>, Locatable {
+  
+    // XXX: should it be instance or static field?
+    protected static LocalNameVariant elementDefaultLocalNameVariant = 
+        LocalNameVariant.valueOf(
+            System.getProperty("com.sun.xml.bind.v2.model.impl.ElementDefaultLocalNameVariant", "MIXED_CLASS_NAME"));
+    
+    // XXX: should it be instance or static field?
+    protected static LocalNameVariant typeDefaultLocalNameVariant = 
+        LocalNameVariant.valueOf(
+            System.getProperty("com.sun.xml.bind.v2.model.impl.TypeDefaultLocalNameVariant", "MIXED_CLASS_NAME"));
 
     /**
      * The Java class that caused this Java class to be a part of the JAXB processing.
@@ -118,7 +127,7 @@ abstract class TypeInfoImpl<TypeT,ClassDeclT,FieldT,MethodT>
         String local = e.name();
         if(local.equals("##default")) {
             // if defaulted...
-            local = NameConverter.standard.toVariableName(nav().getClassShortName(clazz));
+            local = elementDefaultLocalNameVariant.convert(nav().getClassShortName(clazz));
         }
         String nsUri = e.namespace();
         if(nsUri.equals("##default")) {
@@ -163,7 +172,7 @@ abstract class TypeInfoImpl<TypeT,ClassDeclT,FieldT,MethodT>
 
         if(local.equals("##default"))
             // if defaulted ...
-            local = NameConverter.standard.toVariableName(nav().getClassShortName(clazz));
+            local = typeDefaultLocalNameVariant.convert(nav().getClassShortName(clazz));
 
         if(nsUri.equals("##default")) {
             // if defaulted ...

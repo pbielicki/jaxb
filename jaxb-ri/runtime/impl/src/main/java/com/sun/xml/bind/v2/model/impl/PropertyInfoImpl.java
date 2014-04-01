@@ -77,6 +77,11 @@ import com.sun.xml.bind.v2.runtime.SwaRefAdapter;
  */
 abstract class PropertyInfoImpl<T,C,F,M>
     implements PropertyInfo<T,C>, Locatable, Comparable<PropertyInfoImpl> /*by their names*/ {
+  
+    // XXX: should it be instance or static field?
+    protected static LocalNameVariant propertyDefaultLocalNameVariant = 
+        LocalNameVariant.valueOf(
+            System.getProperty("com.sun.xml.bind.v2.model.impl.PropertyDefaultLocalNameVariant", "UNCHANGED"));
 
     /**
      * Object that reads annotations.
@@ -360,7 +365,7 @@ abstract class PropertyInfoImpl<T,C,F,M>
         // compute the default
         TODO.checkSpec();
         if(local.length()==0 || local.equals("##default"))
-            local = seed.getName();
+            local = propertyDefaultLocalNameVariant.convert(seed.getName());
         if(uri.equals("##default")) {
             XmlSchema xs = reader().getPackageAnnotation( XmlSchema.class, parent.getClazz(), this );
             // JAX-RPC doesn't want the default namespace URI swapping to take effect to
