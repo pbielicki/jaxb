@@ -169,9 +169,21 @@ public final class ClassFactory {
      *  Call a method in the factory class to get the object.
      */
     public static Object create(Method method) {
-        Throwable errorMsg;
-        try {
-            return method.invoke(null, emptyObject);
+      return create(method, Object.class);
+    }
+    
+    /**
+     *  Call a method in the factory class to get the object.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T create(Method method, Class<T> jaxbType) {
+      Throwable errorMsg;
+      try {
+          if (method.getParameterTypes().length == 1) {
+            return (T) method.invoke(null, jaxbType);
+          } else {
+            return (T) method.invoke(null, emptyObject);
+          }
         } catch (InvocationTargetException ive) {
             Throwable target = ive.getTargetException();
 

@@ -285,7 +285,7 @@ public final class ClassBeanInfoImpl<BeanT> extends JaxBeanInfo<BeanT> implement
         if (factoryMethod == null){
            bean = ClassFactory.create0(jaxbType);
         }else {
-            Object o = ClassFactory.create(factoryMethod);
+          Object o = ClassFactory.create(factoryMethod, jaxbType);
             if( jaxbType.isInstance(o) ){
                 bean = (BeanT)o;
             } else {

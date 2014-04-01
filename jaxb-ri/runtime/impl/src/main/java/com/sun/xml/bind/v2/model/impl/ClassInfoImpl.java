@@ -42,6 +42,7 @@ package com.sun.xml.bind.v2.model.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1302,14 +1303,22 @@ public class ClassInfoImpl<T,C,F,M> extends TypeInfoImpl<T,C,F,M>
                 fClass = nav().use(clazz);
             }
             for(M m: nav().getDeclaredMethods(nav().asDecl(fClass))){
-                //- Find the zero-arg public static method with the required return type
-                if (nav().getMethodName(m).equals(method) &&
-                    nav().isSameType(nav().getReturnType(m), nav().use(clazz)) &&
-                    nav().getMethodParameters(m).length == 0 &&
-                    nav().isStaticMethod(m)){
-                    factoryMethod = m;
-                    break;
+              //- Find the zero-arg public static method with the required (or Object) return type
+              //  or one-arg (Class) public static method with the required (or Object) return type
+              if (nav().getMethodName(m).equals(method) &&
+                  (nav().isSameType(nav().getReturnType(m), nav().use(clazz)) ||
+                      nav().asDecl(nav().getReturnType(m)).equals(Object.class)) &&
+                  nav().isStaticMethod(m)) {
+                
+                T[] mParams = nav().getMethodParameters(m);
+                if (mParams.length == 0 ||
+                     (mParams.length == 1 && 
+                      nav().isParameterizedType(mParams[0]) &&
+                      ((ParameterizedType) mParams[0]).getRawType().equals(Class.class))) {
+                  factoryMethod = m;
+                  break;
                 }
+              }
             }
             if (factoryMethod == null){
                 builder.reportError(new IllegalAnnotationException(
