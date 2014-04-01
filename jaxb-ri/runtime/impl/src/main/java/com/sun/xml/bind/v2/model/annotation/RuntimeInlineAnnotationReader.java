@@ -66,9 +66,9 @@ public final class RuntimeInlineAnnotationReader extends AbstractInlineAnnotatio
     }
 
     public boolean hasClassAnnotation(Class clazz, Class<? extends Annotation> annotationType) {
-        return clazz.isAnnotationPresent(annotationType);
+        return getAnnotation(annotationType, clazz.getAnnotations()) != null;
     }
-
+    
     public Annotation[] getAllFieldAnnotations(Field field, Locatable srcPos) {
         Annotation[] r = field.getAnnotations();
         for( int i=0; i<r.length; i++ ) {
@@ -103,9 +103,30 @@ public final class RuntimeInlineAnnotationReader extends AbstractInlineAnnotatio
     }
 
     public <A extends Annotation> A getClassAnnotation(Class<A> a, Class clazz, Locatable srcPos) {
-        return LocatableAnnotation.create(((Class<?>)clazz).getAnnotation(a),srcPos);
+        return LocatableAnnotation.create(getAnnotation(a, clazz.getAnnotations()),srcPos);
     }
+    
+    @SuppressWarnings("unchecked")
+    public <A extends Annotation> A getAnnotation(Class<A> annotationType, Annotation[] anns) {
+      for (Annotation a : anns) {
+          if (a.annotationType() == annotationType) {
+              return (A) a;
+          }
+      }
 
+      // Two loops are necessary to allow meta-annotation override.
+      // This is due to the fact that Class.getAnnotations() does not guarantee 
+      // any specific order of annotations returned - it might differ from run to run.
+      for (Annotation a : anns) {
+        for (Annotation metaAnn : a.annotationType().getAnnotations()) {
+          if (metaAnn.annotationType() == annotationType) {
+            return (A) metaAnn;
+          }
+        }
+      }
+      
+      return null;
+    }
 
     /**
      * Cache for package-level annotations.
